@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Work Order Book - PEA นครพนม</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: #f8fffe;
+            min-height: 100vh;
+            color: #1a1a1a;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #e8f5e8;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        .btn-primary {
+            background: #2A505A;
+            color: white;
+            border: none;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background: #1e3a42;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(42, 80, 90, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #1a1a1a;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .btn-secondary:hover {
+            background: #f5f5f5;
+            border-color: #4caf50;
+        }
+        
+        .input-field {
+            background: white;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s ease;
+            color: #1a1a1a;
+        }
+        
+        .input-field:focus {
+            border-color: #2A505A;
+            box-shadow: 0 0 0 2px rgba(42, 80, 90, 0.1);
+            outline: none;
+        }
+        
+        .grid-container {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        }
+        
+        .section-header {
+            background: #2A505A;
+            color: white;
+            padding: 1rem;
+            border-radius: 12px 12px 0 0;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2A505A;
+            border-radius: 10px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #1e3a42;
+        }
+        
+        .banner-container {
+            background: white;
+            border: 1px solid #e8f5e8;
+        }
+        
+        .status-pending { background: #fff8e1; color: #f57c00; border: 1px solid #ffcc02; }
+        .status-progress { background: #e3f2fd; color: #1976d2; border: 1px solid #2196f3; }
+        .status-completed { background: #e8f5e8; color: #2e7d32; border: 1px solid #2A505A; }
+        .status-cancelled { background: #ffebee; color: #c62828; border: 1px solid #f44336; }
+        
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .search-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr auto;
+            gap: 1rem;
+        }
+        
+        .nav-btn {
+            background: white;
+            color: #2A505A;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .nav-btn:hover {
+            background: #f5f5f5;
+            border-color: #2A505A;
+        }
+        
+        .nav-btn.active {
+            background: #2A505A;
+            color: white;
+            border-color: #2A505A;
+        }
+
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="max-w-7xl mx-auto">
+        <!-- Banner Section -->
+        <div id="bannerSection" class="banner-container rounded-xl mb-4 hidden">
+            <img id="bannerImage" src="" alt="Banner" class="w-full h-40 md:h-48 object-cover rounded-xl">
+        </div>
+
+        <!-- Header -->
+        <div class="card p-6 mb-6 text-center" style="background: #2A505A;">
+            <h1 id="systemTitle" class="text-3xl font-bold text-white mb-2">Work Order Book</h1>
+            <p class="text-white/90 text-lg">แผนกบริการและลูกค้าสัมพันธ์ PEA นครพนม</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="card p-4 mb-6">
+            <div class="nav-grid">
+                <button id="formBtn" onclick="showForm()" class="nav-btn px-6 py-3 rounded-lg font-medium active">
+                    📝 เพิ่มข้อมูลใหม่
+                </button>
+                <button id="searchBtn" onclick="showSearch()" class="nav-btn px-6 py-3 rounded-lg font-medium">
+                    🔍 ค้นหาข้อมูล
+                </button>
+                <button id="summaryBtn" onclick="showSummary()" class="nav-btn px-6 py-3 rounded-lg font-medium">
+                    📊 สรุปงาน
+                </button>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div id="formSection" class="card mb-6">
+            <div class="section-header">📝 เพิ่ม/แก้ไขข้อมูล</div>
+            <form id="workForm" class="p-6">
+                <input type="hidden" id="editId" value="">
+                
+                <!-- Required Fields Section -->
+                <div class="mb-8 p-4 border-2 border-gray-300 rounded-lg bg-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">📋 ข้อมูลที่จำเป็น (บังคับกรอก)</h3>
+                    <div class="form-grid">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">วันที่ *</label>
+                            <input type="date" id="date" required class="w-full p-3 rounded-lg input-field">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">ชื่อผู้ขอขยายเขต *</label>
+                            <input type="text" id="requester" required class="w-full p-3 rounded-lg input-field">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">อำเภอ *</label>
+                            <select id="district" required class="w-full p-3 rounded-lg input-field">
+                                <option value="">เลือกอำเภอ</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">ผู้รับผิดชอบ *</label>
+                            <select id="responsible" required class="w-full p-3 rounded-lg input-field">
+                                <option value="">เลือกผู้รับผิดชอบ</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">งบ *</label>
+                            <select id="budget" required class="w-full p-3 rounded-lg input-field">
+                                <option value="">เลือกงบ</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">สถานะ *</label>
+                            <select id="status" required class="w-full p-3 rounded-lg input-field">
+                                <option value="">เลือกสถานะ</option>
+                            </select>
+                        </div>
+
+                        <div style="grid-column: 1 / -1;">
+                            <label class="block text-gray-700 font-medium mb-2">รายละเอียด *</label>
+                            <textarea id="details" required rows="3" class="w-full p-3 rounded-lg input-field resize-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optional Fields Section -->
+                <div class="mb-8 p-4 border-2 border-gray-300 rounded-lg bg-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">📝 ข้อมูลเพิ่มเติม (ไม่บังคับ)</h3>
+                    <div class="form-grid">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">ตำบล</label>
+                            <input type="text" id="subdistrict" class="w-full p-3 rounded-lg input-field">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">หมู่บ้าน</label>
+                            <input type="text" id="village" class="w-full p-3 rounded-lg input-field">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">เบอร์โทรศัพท์</label>
+                            <input type="tel" id="phone" class="w-full p-3 rounded-lg input-field">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">หมายเลข WBS</label>
+                            <input type="text" id="wbs" class="w-full p-3 rounded-lg input-field">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">งบประมาณ</label>
+                            <input type="number" id="budgetAmount" step="0.01" class="w-full p-3 rounded-lg input-field">
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">แนบไฟล์</label>
+                            <input type="file" id="fileUpload" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" class="w-full p-3 rounded-lg input-field">
+                            <div id="filePreview" class="mt-2 flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 justify-center">
+                    <button type="submit" class="btn-primary px-8 py-3 rounded-lg font-medium">
+                        💾 บันทึกข้อมูล
+                    </button>
+                    <button type="button" onclick="clearForm()" class="btn-secondary px-8 py-3 rounded-lg font-medium">
+                        🗑️ ล้างข้อมูล
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Search Section -->
+        <div id="searchSection" class="card mb-6 hidden">
+            <div class="section-header">🔍 ค้นหาข้อมูล</div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                    <input type="text" id="searchText" placeholder="ค้นหาจากรายละเอียด, ชื่อผู้ขอ, ผู้รับผิดชอบ" class="p-3 rounded-lg input-field">
+                    <select id="searchResponsible" class="p-3 rounded-lg input-field">
+                        <option value="">ทุกผู้รับผิดชอบ</option>
+                    </select>
+                    <select id="searchDistrict" class="p-3 rounded-lg input-field">
+                        <option value="">ทุกอำเภอ</option>
+                    </select>
+                    <select id="searchMonth" class="p-3 rounded-lg input-field">
+                        <option value="">ทุกเดือน</option>
+                        <option value="01">มกราคม</option>
+                        <option value="02">กุมภาพันธ์</option>
+                        <option value="03">มีนาคม</option>
+                        <option value="04">เมษายน</option>
+                        <option value="05">พฤษภาคม</option>
+                        <option value="06">มิถุนายน</option>
+                        <option value="07">กรกฎาคม</option>
+                        <option value="08">สิงหาคม</option>
+                        <option value="09">กันยายน</option>
+                        <option value="10">ตุลาคม</option>
+                        <option value="11">พฤศจิกายน</option>
+                        <option value="12">ธันวาคม</option>
+                    </select>
+                    <select id="searchYear" class="p-3 rounded-lg input-field">
+                        <option value="">ทุกปี</option>
+                    </select>
+                    <select id="searchStatus" class="p-3 rounded-lg input-field">
+                        <option value="">ทุกสถานะ</option>
+                    </select>
+                    <button onclick="searchData()" class="btn-primary px-6 py-3 rounded-lg font-medium col-span-full md:col-span-1">
+                        🔍 ค้นหา
+                    </button>
+                    <button onclick="clearSearch()" class="btn-secondary px-6 py-3 rounded-lg font-medium col-span-full md:col-span-1">
+                        🗑️ ล้างตัวกรอง
+                    </button>
+                </div>
+                <div id="searchResults" class="custom-scrollbar max-h-96 overflow-y-auto space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div id="summarySection" class="card mb-6 hidden">
+            <div class="section-header">📊 สรุปงาน</div>
+            <div class="p-6">
+                <!-- Overall Statistics -->
+                <div id="overallStats" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                    <div class="text-center p-4 bg-gray-50 rounded-lg border">
+                        <div id="totalAll" class="text-3xl font-bold text-gray-700">0</div>
+                        <div class="text-gray-600 text-sm">งานทั้งหมด</div>
+                    </div>
+                    <div class="text-center p-4 bg-yellow-50 rounded-lg border">
+                        <div id="totalPending" class="text-3xl font-bold text-orange-600">0</div>
+                        <div class="text-orange-500 text-sm">รอดำเนินการ</div>
+                    </div>
+                    <div class="text-center p-4 bg-blue-50 rounded-lg border">
+                        <div id="totalProgress" class="text-3xl font-bold text-blue-600">0</div>
+                        <div class="text-blue-500 text-sm">กำลังดำเนินการ</div>
+                    </div>
+                    <div class="text-center p-4 bg-green-50 rounded-lg border">
+                        <div id="totalCompleted" class="text-3xl font-bold text-green-600">0</div>
+                        <div class="text-green-500 text-sm">เสร็จสิ้น</div>
+                    </div>
+                    <div class="text-center p-4 bg-red-50 rounded-lg border">
+                        <div id="totalCancelled" class="text-3xl font-bold text-red-600">0</div>
+                        <div class="text-red-500 text-sm">ยกเลิก</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <select id="summaryType" class="p-3 rounded-lg input-field">
+                        <option value="responsible">ตามผู้รับผิดชอบ</option>
+                        <option value="district">ตามอำเภอ</option>
+                        <option value="month">ตามเดือน</option>
+                        <option value="year">ตามปี</option>
+                    </select>
+                    <select id="summaryYear" class="p-3 rounded-lg input-field">
+                        <option value="">ทุกปี</option>
+                    </select>
+                    <button onclick="generateSummary()" class="btn-primary px-6 py-3 rounded-lg font-medium">
+                        📊 สร้างสรุป
+                    </button>
+                </div>
+                <div id="summaryContent" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="max-w-7xl mx-auto mt-8 mb-4">
+        <div class="text-center">
+            <p id="developerInfo" class="text-gray-500 text-xs">พัฒนาโดย: นายศุภกฤษ ทะวัง ชผ.บส.กฟส.เมืองนครพนม</p>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="section-header flex justify-between items-center">
+                <span>รายละเอียดข้อมูล</span>
+                <button onclick="closeDetailModal()" class="text-white hover:text-gray-200 text-2xl">&times;</button>
+            </div>
+            <div class="p-6">
+                <div id="detailContent" class="space-y-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9glxKrkYJw8hqsyeuoFl56Qufip4_Bdz80QmLapIWYQqCWrSaV1k2osrNcjzArAtk/exec';
+        
+        let currentOptions = {
+            district: [],
+            responsible: [],
+            budget: [],
+            status: []
+        };
+        let allData = [];
+        let bannerUrls = [];
+        let currentSlide = 0;
+        let slideInterval;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOptionsFromSheet();
+            loadData();
+            loadBannerFromSheet();
+            loadDeveloperInfo();
+            loadSystemTitle();
+            initializeYearOptions();
+            
+            // Set today's date as default
+            document.getElementById('date').valueAsDate = new Date();
+            
+            // File upload preview
+            document.getElementById('fileUpload').addEventListener('change', handleFilePreview);
+            
+            // Form submission
+            document.getElementById('workForm').addEventListener('submit', handleSubmit);
+            
+
+        });
+
+        async function loadOptionsFromSheet() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getOptions`);
+                const result = await response.json();
+                if (result.success) {
+                    currentOptions = result.options;
+                    initializeOptions();
+                } else {
+                    // Use default options if sheet doesn't have options
+                    currentOptions = {
+                        district: ['เมืองนครพนม', 'ปลาปาก', 'ท่าอุเทน', 'บ้านแพง', 'ศรีสงคราม', 'นาหว้า', 'โพนสวรรค์', 'ธาตุพนม', 'เรณูนคร', 'นาแก', 'วังยาง', 'นาทม'],
+                        responsible: ['นพพร วิเศษแก้ว', 'ศุภกฤษ ทะวัง', 'สนธยา คำจันทร์', 'รพีภัทร ชัยสุนทร', 'อาทิตย์ สมบัติ', 'สรายุทธ สุขแซว'],
+                        budget: ['C', 'P', 'I', 'C01.1', 'C02.1', 'C02.2', 'C03.1', 'CหลายDot'],
+                        status: ['รอดำเนินการ', 'กำลังดำเนินการ', 'เสร็จสิ้น', 'ยกเลิก']
+                    };
+                    initializeOptions();
+                }
+            } catch (error) {
+                console.error('Error loading options:', error);
+                // Use default options on error
+                currentOptions = {
+                    district: ['เมืองนครพนม', 'ปลาปาก', 'ท่าอุเทน', 'บ้านแพง', 'ศรีสงคราม', 'นาหว้า', 'โพนสวรรค์', 'ธาตุพนม', 'เรณูนคร', 'นาแก', 'วังยาง', 'นาทม'],
+                    responsible: ['นพพร วิเศษแก้ว', 'ศุภกฤษ ทะวัง', 'สนธยา คำจันทร์', 'รพีภัทร ชัยสุนทร', 'อาทิตย์ สมบัติ', 'สรายุทธ สุขแซว'],
+                    budget: ['C', 'P', 'I', 'C01.1', 'C02.1', 'C02.2', 'C03.1', 'CหลายDot'],
+                    status: ['รอดำเนินการ', 'กำลังดำเนินการ', 'เสร็จสิ้น', 'ยกเลิก']
+                };
+                initializeOptions();
+            }
+        }
+
+        async function loadBannerFromSheet() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getBanner`);
+                const result = await response.json();
+                if (result.success && result.bannerUrls && result.bannerUrls.length > 0) {
+                    const bannerUrl = result.bannerUrls[0]; // Use first image only
+                    if (bannerUrl && bannerUrl.trim() !== '') {
+                        updateBannerDisplay(bannerUrl);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading banner:', error);
+            }
+        }
+
+        function initializeOptions() {
+            Object.keys(currentOptions).forEach(field => {
+                populateSelect(field, currentOptions[field]);
+            });
+            populateSelect('searchResponsible', currentOptions.responsible);
+            populateSelect('searchDistrict', currentOptions.district);
+            populateSelect('searchStatus', currentOptions.status);
+        }
+
+        function initializeYearOptions() {
+            const currentYear = new Date().getFullYear();
+            const years = [];
+            for (let year = currentYear - 5; year <= currentYear + 2; year++) {
+                years.push(year.toString());
+            }
+            populateSelect('searchYear', years);
+            populateSelect('summaryYear', years);
+        }
+
+        async function loadDeveloperInfo() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getDeveloper`);
+                const result = await response.json();
+                if (result.success && result.developerInfo) {
+                    document.getElementById('developerInfo').textContent = result.developerInfo;
+                }
+            } catch (error) {
+                console.error('Error loading developer info:', error);
+            }
+        }
+
+        async function loadSystemTitle() {
+            try {
+                console.log('กำลังโหลดชื่อระบบจากชีท...');
+                const response = await fetch(`${SCRIPT_URL}?action=getSystemTitle`);
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                const result = JSON.parse(text);
+                console.log('Parsed result:', result);
+                
+                if (result.success && result.systemTitle && result.systemTitle.trim() !== '') {
+                    console.log('อัปเดตชื่อระบบเป็น:', result.systemTitle);
+                    document.getElementById('systemTitle').textContent = result.systemTitle;
+                } else {
+                    console.log('ไม่พบชื่อระบบในชีท หรือชื่อว่าง');
+                }
+            } catch (error) {
+                console.error('Error loading system title:', error);
+            }
+        }
+
+        function updateBannerDisplay(bannerUrl) {
+            const bannerSection = document.getElementById('bannerSection');
+            const bannerImage = document.getElementById('bannerImage');
+            
+            if (bannerUrl) {
+                bannerImage.src = bannerUrl;
+                bannerSection.classList.remove('hidden');
+            } else {
+                bannerSection.classList.add('hidden');
+            }
+        }
+
+        function populateSelect(fieldId, options) {
+            const select = document.getElementById(fieldId);
+            if (!select) return;
+            
+            // Keep the first option (placeholder)
+            const firstOption = select.options[0];
+            select.innerHTML = '';
+            if (firstOption) select.appendChild(firstOption);
+            
+            options.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option;
+                optionElement.textContent = option;
+                select.appendChild(optionElement);
+            });
+        }
+
+        function updateNavButtons(activeBtn) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(activeBtn).classList.add('active');
+        }
+
+        function showForm() {
+            document.getElementById('formSection').classList.remove('hidden');
+            document.getElementById('searchSection').classList.add('hidden');
+            document.getElementById('summarySection').classList.add('hidden');
+            updateNavButtons('formBtn');
+        }
+
+        function showSearch() {
+            document.getElementById('formSection').classList.add('hidden');
+            document.getElementById('searchSection').classList.remove('hidden');
+            document.getElementById('summarySection').classList.add('hidden');
+            updateNavButtons('searchBtn');
+            loadData();
+        }
+
+        function showSummary() {
+            document.getElementById('formSection').classList.add('hidden');
+            document.getElementById('searchSection').classList.add('hidden');
+            document.getElementById('summarySection').classList.remove('hidden');
+            updateNavButtons('summaryBtn');
+            generateSummary();
+        }
+
+        function showDetail(id) {
+            const record = allData.find(item => item.id === id);
+            if (!record) return;
+            
+            const detailContent = document.getElementById('detailContent');
+            detailContent.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><strong class="text-blue-700">วันที่:</strong> <span class="text-gray-700">${record.date}</span></div>
+                    <div><strong class="text-blue-700">ผู้ขอขยายเขต:</strong> <span class="text-gray-700">${record.requester}</span></div>
+                    <div><strong class="text-blue-700">อำเภอ:</strong> <span class="text-gray-700">${record.district}</span></div>
+                    <div><strong class="text-blue-700">ตำบล:</strong> <span class="text-gray-700">${record.subdistrict || '-'}</span></div>
+                    <div><strong class="text-blue-700">หมู่บ้าน:</strong> <span class="text-gray-700">${record.village || '-'}</span></div>
+                    <div><strong class="text-blue-700">เบอร์โทร:</strong> <span class="text-gray-700">${record.phone || '-'}</span></div>
+                    <div><strong class="text-blue-700">WBS:</strong> <span class="text-gray-700">${record.wbs || '-'}</span></div>
+                    <div><strong class="text-blue-700">ผู้รับผิดชอบ:</strong> <span class="text-gray-700">${record.responsible}</span></div>
+                    <div><strong class="text-blue-700">งบ:</strong> <span class="text-gray-700">${record.budget}</span></div>
+                    <div><strong class="text-blue-700">งบประมาณ:</strong> <span class="text-gray-700">${record.budgetAmount ? parseFloat(record.budgetAmount).toLocaleString() + ' บาท' : '-'}</span></div>
+                    <div><strong class="text-blue-700">สถานะ:</strong> <span class="px-2 py-1 rounded-full text-xs ${getStatusClass(record.status)}">${record.status}</span></div>
+                    <div class="md:col-span-2"><strong class="text-blue-700">รายละเอียด:</strong> <div class="mt-1 p-3 bg-gray-50 rounded-lg text-gray-700">${record.details}</div></div>
+                    ${record.fileurl ? `<div class="md:col-span-2"><strong class="text-blue-700">ไฟล์แนบ:</strong> <a href="${record.fileurl}" target="_blank" class="text-blue-600 hover:text-blue-800 underline ml-2">ดูไฟล์</a></div>` : ''}
+                    <div class="md:col-span-2 text-sm text-gray-500">
+                        <div><strong>สร้างเมื่อ:</strong> ${new Date(record.createdat).toLocaleString('th-TH')}</div>
+                        ${record.updatedat !== record.createdat ? `<div><strong>แก้ไขล่าสุด:</strong> ${new Date(record.updatedat).toLocaleString('th-TH')}</div>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('detailModal').classList.remove('hidden');
+            document.getElementById('detailModal').classList.add('flex');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+            document.getElementById('detailModal').classList.remove('flex');
+        }
+
+        function handleFilePreview(event) {
+            const files = event.target.files;
+            const preview = document.getElementById('filePreview');
+            preview.innerHTML = '';
+            
+            Array.from(files).forEach(file => {
+                const div = document.createElement('div');
+                div.className = 'bg-white/20 p-2 rounded-lg text-white text-sm';
+                div.textContent = file.name;
+                preview.appendChild(div);
+            });
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const loadingAlert = Swal.fire({
+                title: 'กำลังบันทึกข้อมูล...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const formData = new URLSearchParams();
+                const editId = document.getElementById('editId').value;
+                
+                // Basic form data
+                formData.append('action', editId ? 'update' : 'create');
+                if (editId) formData.append('id', editId);
+                formData.append('date', document.getElementById('date').value);
+                formData.append('details', document.getElementById('details').value);
+                formData.append('requester', document.getElementById('requester').value);
+                formData.append('district', document.getElementById('district').value);
+                formData.append('subdistrict', document.getElementById('subdistrict').value);
+                formData.append('village', document.getElementById('village').value);
+                formData.append('phone', document.getElementById('phone').value);
+                formData.append('wbs', document.getElementById('wbs').value);
+                formData.append('responsible', document.getElementById('responsible').value);
+                formData.append('budget', document.getElementById('budget').value);
+                formData.append('budgetAmount', document.getElementById('budgetAmount').value);
+                formData.append('status', document.getElementById('status').value);
+
+                // Handle file uploads
+                const files = document.getElementById('fileUpload').files;
+                if (files.length > 0) {
+                    const filePromises = Array.from(files).map(file => {
+                        return new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                                resolve({
+                                    name: file.name,
+                                    type: file.type,
+                                    data: reader.result.split(',')[1] // Remove data:type;base64, prefix
+                                });
+                            };
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                        });
+                    });
+                    
+                    const fileData = await Promise.all(filePromises);
+                    formData.append('files', JSON.stringify(fileData));
+                }
+
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                let result;
+                try {
+                    const text = await response.text();
+                    result = JSON.parse(text);
+                } catch (parseError) {
+                    throw new Error('เกิดข้อผิดพลาดในการประมวลผลข้อมูล');
+                }
+
+                if (result.success) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'บันทึกสำเร็จ!',
+                        text: editId ? 'แก้ไขข้อมูลเรียบร้อยแล้ว' : 'เพิ่มข้อมูลเรียบร้อยแล้ว',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    clearForm();
+                    loadData();
+                } else {
+                    throw new Error(result.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                }
+            } catch (error) {
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด!',
+                    text: error.message
+                });
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('workForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('filePreview').innerHTML = '';
+            document.getElementById('date').valueAsDate = new Date();
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=read`);
+                let result;
+                try {
+                    const text = await response.text();
+                    result = JSON.parse(text);
+                } catch (parseError) {
+                    throw new Error('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+                }
+                
+                if (result.success) {
+                    allData = result.data || [];
+                } else {
+                    throw new Error(result.error || 'ไม่สามารถโหลดข้อมูลได้');
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                allData = [];
+            }
+        }
+
+        function searchData() {
+            const searchText = document.getElementById('searchText').value.toLowerCase();
+            const searchResponsible = document.getElementById('searchResponsible').value;
+            
+            let filteredData = allData.filter(item => {
+                const matchText = !searchText || 
+                    item.details.toLowerCase().includes(searchText) ||
+                    item.requester.toLowerCase().includes(searchText) ||
+                    item.responsible.toLowerCase().includes(searchText);
+                
+                const matchResponsible = !searchResponsible || item.responsible === searchResponsible;
+                
+                return matchText && matchResponsible;
+            });
+            
+            displaySearchResults(filteredData);
+        }
+
+        function displaySearchResults(data) {
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (data.length === 0) {
+                resultsDiv.innerHTML = '<div class="text-blue-600 text-center py-8 bg-blue-50 rounded-xl">ไม่พบข้อมูล</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = data.map(item => `
+                <div class="bg-white rounded-lg p-4 border border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                        <div><strong class="text-gray-700">วันที่:</strong> <span class="text-gray-600">${item.date}</span></div>
+                        <div><strong class="text-gray-700">ผู้ขอ:</strong> <span class="text-gray-600">${item.requester}</span></div>
+                        <div><strong class="text-gray-700">อำเภอ:</strong> <span class="text-gray-600">${item.district}</span></div>
+                        <div><strong class="text-gray-700">ผู้รับผิดชอบ:</strong> <span class="text-gray-600">${item.responsible}</span></div>
+                        <div><strong class="text-gray-700">สถานะ:</strong> <span class="px-2 py-1 rounded-full text-xs ${getStatusClass(item.status)}">${item.status}</span></div>
+                        <div><strong class="text-gray-700">งบ:</strong> <span class="text-gray-600">${item.budget}</span></div>
+                        <div class="md:col-span-2 lg:col-span-3">
+                            <strong class="text-gray-700">รายละเอียด:</strong> 
+                            <span class="text-gray-600">${item.details.length > 100 ? item.details.substring(0, 100) + '...' : item.details}</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <button onclick="showDetail('${item.id}')" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium">
+                            👁️ รายละเอียด
+                        </button>
+                        <button onclick="editRecord('${item.id}')" class="btn-secondary px-4 py-2 rounded-lg text-sm font-medium">
+                            ✏️ แก้ไข
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'รอดำเนินการ': 'status-pending',
+                'กำลังดำเนินการ': 'status-progress',
+                'เสร็จสิ้น': 'status-completed',
+                'ยกเลิก': 'status-cancelled'
+            };
+            return classes[status] || 'bg-gray-100 text-gray-600';
+        }
+
+        function editRecord(id) {
+            const record = allData.find(item => item.id === id);
+            if (!record) return;
+            
+            // Fill form with record data
+            document.getElementById('editId').value = id;
+            document.getElementById('date').value = record.date;
+            document.getElementById('details').value = record.details;
+            document.getElementById('requester').value = record.requester;
+            document.getElementById('district').value = record.district;
+            document.getElementById('subdistrict').value = record.subdistrict || '';
+            document.getElementById('village').value = record.village || '';
+            document.getElementById('phone').value = record.phone || '';
+            document.getElementById('wbs').value = record.wbs || '';
+            document.getElementById('responsible').value = record.responsible;
+            document.getElementById('budget').value = record.budget;
+            document.getElementById('budgetAmount').value = record.budgetAmount || '';
+            document.getElementById('status').value = record.status;
+            
+            // Show form section
+            showForm();
+            
+            // Scroll to form
+            document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateSummary() {
+            // Update overall statistics first
+            updateOverallStats();
+            
+            const summaryType = document.getElementById('summaryType').value;
+            const summaryYear = document.getElementById('summaryYear').value;
+            
+            let filteredData = allData;
+            if (summaryYear) {
+                filteredData = allData.filter(item => new Date(item.date).getFullYear().toString() === summaryYear);
+            }
+            
+            const summary = {};
+            
+            filteredData.forEach(item => {
+                let key;
+                switch(summaryType) {
+                    case 'responsible':
+                        key = item.responsible;
+                        break;
+                    case 'district':
+                        key = item.district;
+                        break;
+                    case 'month':
+                        const date = new Date(item.date);
+                        const monthNames = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                                          'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+                        key = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+                        break;
+                    case 'year':
+                        key = new Date(item.date).getFullYear().toString();
+                        break;
+                    default:
+                        key = item.responsible;
+                }
+                
+                if (!summary[key]) {
+                    summary[key] = {
+                        total: 0,
+                        รอดำเนินการ: 0,
+                        กำลังดำเนินการ: 0,
+                        เสร็จสิ้น: 0,
+                        ยกเลิก: 0
+                    };
+                }
+                summary[key].total++;
+                summary[key][item.status]++;
+            });
+            
+            const summaryContent = document.getElementById('summaryContent');
+            const summaryTitle = {
+                'responsible': 'ผู้รับผิดชอบ',
+                'district': 'อำเภอ',
+                'month': 'เดือน',
+                'year': 'ปี'
+            };
+            
+            summaryContent.innerHTML = Object.keys(summary).map(key => {
+                const getPercentage = (count, total) => {
+                    return total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+                };
+                
+                return `
+                <div class="bg-white rounded-lg p-6 border border-gray-200">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">${key}</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div class="text-center p-3 bg-gray-50 rounded-lg border">
+                            <div class="text-2xl font-bold text-gray-700">${summary[key].total}</div>
+                            <div class="text-gray-600 text-sm">งานทั้งหมด</div>
+                        </div>
+                        <div class="text-center p-3 bg-yellow-50 rounded-lg border">
+                            <div class="text-2xl font-bold text-orange-600">${summary[key].รอดำเนินการ}<br><span class="text-xs">(${getPercentage(summary[key].รอดำเนินการ, summary[key].total)}%)</span></div>
+                            <div class="text-orange-500 text-sm">รอดำเนินการ</div>
+                        </div>
+                        <div class="text-center p-3 bg-blue-50 rounded-lg border">
+                            <div class="text-2xl font-bold text-blue-600">${summary[key].กำลังดำเนินการ}<br><span class="text-xs">(${getPercentage(summary[key].กำลังดำเนินการ, summary[key].total)}%)</span></div>
+                            <div class="text-blue-500 text-sm">กำลังดำเนินการ</div>
+                        </div>
+                        <div class="text-center p-3 bg-green-50 rounded-lg border">
+                            <div class="text-2xl font-bold text-green-600">${summary[key].เสร็จสิ้น}<br><span class="text-xs">(${getPercentage(summary[key].เสร็จสิ้น, summary[key].total)}%)</span></div>
+                            <div class="text-green-500 text-sm">เสร็จสิ้น</div>
+                        </div>
+                        <div class="text-center p-3 bg-red-50 rounded-lg border">
+                            <div class="text-2xl font-bold text-red-600">${summary[key].ยกเลิก}<br><span class="text-xs">(${getPercentage(summary[key].ยกเลิก, summary[key].total)}%)</span></div>
+                            <div class="text-red-500 text-sm">ยกเลิก</div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function updateOverallStats() {
+            const stats = {
+                total: allData.length,
+                รอดำเนินการ: 0,
+                กำลังดำเนินการ: 0,
+                เสร็จสิ้น: 0,
+                ยกเลิก: 0
+            };
+            
+            allData.forEach(item => {
+                stats[item.status]++;
+            });
+            
+            // Calculate percentages
+            const getPercentage = (count, total) => {
+                return total > 0 ? ((count / total) * 100).toFixed(1) : '0.0';
+            };
+            
+            document.getElementById('totalAll').textContent = stats.total;
+            document.getElementById('totalPending').innerHTML = `${stats.รอดำเนินการ}<br><span class="text-xs">(${getPercentage(stats.รอดำเนินการ, stats.total)}%)</span>`;
+            document.getElementById('totalProgress').innerHTML = `${stats.กำลังดำเนินการ}<br><span class="text-xs">(${getPercentage(stats.กำลังดำเนินการ, stats.total)}%)</span>`;
+            document.getElementById('totalCompleted').innerHTML = `${stats.เสร็จสิ้น}<br><span class="text-xs">(${getPercentage(stats.เสร็จสิ้น, stats.total)}%)</span>`;
+            document.getElementById('totalCancelled').innerHTML = `${stats.ยกเลิก}<br><span class="text-xs">(${getPercentage(stats.ยกเลิก, stats.total)}%)</span>`;
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDetailModal();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'965eb75dd399a1ae',t:'MTc1MzY0NjM1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
